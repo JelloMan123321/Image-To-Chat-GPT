@@ -1,43 +1,88 @@
-function convertImage() {
-  var fileInput = document.getElementById("imageInput");
-  var file = fileInput.files[0];
-  var reader = new FileReader();
+function convertToBlackAndWhite() {
+    var imageContainer = document.getElementById("image-container");
+    var image = imageContainer.querySelector("img");
 
-  reader.onloadend = function () {
-    var image = new Image();
-    image.src = reader.result;
+    if (!image) {
+        alert("Please select an image first.");
+        return;
+    }
 
-    image.onload = function () {
-      var canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
+    var canvas = document.createElement("canvas");
+    var context = canvas.getContext("2d");
 
-      var context = canvas.getContext("2d");
-      context.drawImage(image, 0, 0);
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0);
 
-      var binaryData = "";
+    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imageData.data;
 
-      var imageData = context.getImageData(0, 0, image.width, image.height).data;
-      for (var i = 0; i < imageData.length; i += 4) {
-        var red = imageData[i];
-        var green = imageData[i + 1];
-        var blue = imageData[i + 2];
-        var alpha = imageData[i + 3];
+    for (var i = 0; i < data.length; i += 4) {
+        var avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        data[i] = avg; // Red
+        data[i + 1] = avg; // Green
+        data[i + 2] = avg; // Blue
+    }
 
-        // Calculate average brightness of the pixel
-        var brightness = (red + green + blue) / 3;
+    context.putImageData(imageData, 0, 0);
 
-        // Convert brightness to binary value (1 for black, 0 for white)
-        var binaryValue = brightness < 128 ? "1" : "0";
+    var outputContainer = document.getElementById("output-container");
+    outputContainer.innerHTML = "";
+    outputContainer.appendChild(canvas);
+}
 
-        binaryData += binaryValue;
-      }
+function convertToBinary() {
+    var imageContainer = document.getElementById("image-container");
+    var image = imageContainer.querySelector("img");
 
-      document.getElementById("binaryOutput").textContent = binaryData;
+    if (!image) {
+        alert("Please select an image first.");
+        return;
+    }
+
+    var canvas = document.createElement("canvas");
+    var context = canvas.getContext("2d");
+
+    canvas.width = image.width;
+    canvas.height = image.height;
+    context.drawImage(image, 0, 0);
+
+    var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    var data = imageData.data;
+    var threshold = 128; // Adjust this threshold as needed
+
+    for (var i = 0; i < data.length; i += 4) {
+        var avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+        var binary = avg < threshold ? 0 : 255;
+        data[i] = binary; // Red
+        data[i + 1] = binary; // Green
+        data[i + 2] = binary; // Blue
+    }
+
+    context.putImageData(imageData, 0, 0);
+
+    var outputContainer = document.getElementById("output-container");
+    outputContainer.innerHTML = "";
+    outputContainer.appendChild(canvas);
+}
+
+document.getElementById("file-input").addEventListener("change", function (event) {
+    var file = event.target.files[0];
+    var imageType = /^image\//;
+
+    if (!file || !imageType.test(file.type)) {
+        alert("Please select an image file.");
+        return;
+    }
+
+    var imageContainer = document.getElementById("image-container");
+    imageContainer.innerHTML = "";
+
+    var img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.onload = function () {
+        URL.revokeObjectURL(this.src);
     };
 
-    image.src = URL.createObjectURL(file);
-  };
-
-  reader.readAsDataURL(file);
-}
+    imageContainer.appendChild(img);
+});
