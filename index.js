@@ -16,6 +16,10 @@ document.getElementById("file-input").addEventListener("change", function (event
         URL.revokeObjectURL(this.src);
         imageContainer.appendChild(img);
     };
+
+    // Reset the output container
+    var outputContainer = document.getElementById("output-container");
+    outputContainer.innerHTML = "";
 });
 
 function convertToBlackAndWhite() {
@@ -94,7 +98,17 @@ function convertToBinary() {
     var binaryOutputElement = document.getElementById("binary-output");
     binaryOutputElement.textContent = binaryString;
 
+    // Reset the output container
     var outputContainer = document.getElementById("output-container");
+    outputContainer.innerHTML = "";
+
+    outputContainer.appendChild(binaryOutputElement);
+
+    var copyButton = document.createElement("button");
+    copyButton.textContent = "Copy to Clipboard";
+    copyButton.addEventListener("click", copyToClipboard);
+    outputContainer.appendChild(copyButton);
+
     outputContainer.scrollIntoView({ behavior: "smooth" });
 }
 
