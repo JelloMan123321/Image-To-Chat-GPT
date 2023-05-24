@@ -14,9 +14,8 @@ document.getElementById("file-input").addEventListener("change", function (event
     img.src = URL.createObjectURL(file);
     img.onload = function () {
         URL.revokeObjectURL(this.src);
+        imageContainer.appendChild(img);
     };
-
-    imageContainer.appendChild(img);
 });
 
 function convertToBlackAndWhite() {
@@ -33,7 +32,7 @@ function convertToBlackAndWhite() {
 
     canvas.width = image.width;
     canvas.height = image.height;
-    context.drawImage(image, 0, 0);
+    context.drawImage(image, 0, 0, image.width, image.height);
 
     var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     var data = imageData.data;
@@ -49,7 +48,17 @@ function convertToBlackAndWhite() {
 
     var outputContainer = document.getElementById("output-container");
     outputContainer.innerHTML = "";
-    outputContainer.appendChild(canvas);
+
+    var convertedImg = document.createElement("img");
+    convertedImg.src = canvas.toDataURL("image/png");
+    outputContainer.appendChild(convertedImg);
+
+    // Create a download link for the converted image
+    var downloadLink = document.createElement("a");
+    downloadLink.href = convertedImg.src;
+    downloadLink.download = "black_and_white.png";
+    downloadLink.textContent = "Download";
+    outputContainer.appendChild(downloadLink);
 }
 
 function convertToBinary() {
@@ -66,23 +75,39 @@ function convertToBinary() {
 
     canvas.width = image.width;
     canvas.height = image.height;
-    context.drawImage(image, 0, 0);
+    context.drawImage(image, 0, 0, image.width, image.height);
 
     var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     var data = imageData.data;
     var threshold = 128; // Adjust this threshold as needed
 
+    var binaryOutput = [];
+    var binaryString = "";
+
     for (var i = 0; i < data.length; i += 4) {
         var avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-        var binary = avg < threshold ? 0 : 255;
-        data[i] = binary; // Red
-        data[i + 1] = binary; // Green
-        data[i + 2] = binary; // Blue
+        var binary = avg < threshold ? 0 : 1;
+        binaryOutput.push(binary);
+        binaryString += binary;
     }
 
-    context.putImageData(imageData, 0, 0);
+    var binaryOutputElement = document.getElementById("binary-output");
+    binaryOutputElement.textContent = binaryString;
 
     var outputContainer = document.getElementById("output-container");
-    outputContainer.innerHTML = "";
-    outputContainer.appendChild(canvas);
+    outputContainer.scrollIntoView({ behavior: "smooth" });
+}
+
+function copyToClipboard() {
+    var binaryOutputElement = document.getElementById("binary-output");
+
+    // Create a temporary textarea to copy the binary output
+    var tempTextArea = document.createElement("textarea");
+    tempTextArea.value = binaryOutputElement.textContent;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempTextArea);
+
+    alert("Binary output copied to clipboard!");
 }
