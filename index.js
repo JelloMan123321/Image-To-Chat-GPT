@@ -1,3 +1,24 @@
+document.getElementById("file-input").addEventListener("change", function (event) {
+    var file = event.target.files[0];
+    var imageType = /^image\//;
+
+    if (!file || !imageType.test(file.type)) {
+        alert("Please select an image file.");
+        return;
+    }
+
+    var imageContainer = document.getElementById("image-container");
+    imageContainer.innerHTML = "";
+
+    var img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.onload = function () {
+        URL.revokeObjectURL(this.src);
+    };
+
+    imageContainer.appendChild(img);
+});
+
 function convertToBlackAndWhite() {
     var imageContainer = document.getElementById("image-container");
     var image = imageContainer.querySelector("img");
@@ -65,24 +86,3 @@ function convertToBinary() {
     outputContainer.innerHTML = "";
     outputContainer.appendChild(canvas);
 }
-
-document.getElementById("file-input").addEventListener("change", function (event) {
-    var file = event.target.files[0];
-    var imageType = /^image\//;
-
-    if (!file || !imageType.test(file.type)) {
-        alert("Please select an image file.");
-        return;
-    }
-
-    var imageContainer = document.getElementById("image-container");
-    imageContainer.innerHTML = "";
-
-    var img = document.createElement("img");
-    img.src = URL.createObjectURL(file);
-    img.onload = function () {
-        URL.revokeObjectURL(this.src);
-    };
-
-    imageContainer.appendChild(img);
-});
